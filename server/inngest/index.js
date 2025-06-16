@@ -7,7 +7,7 @@ export const inngest = new Inngest({ id: "movie-ticket-booking" });
 // Inngest function to save user data in database 
 const syncUserCreation = inngest.createFunction(
   {id: 'sync-user-creation'}, 
-  {event: 'clerk.user.created'},
+  {event: 'clerk/user.created'},
   async (event) => {
     const { id, first_name, last_name, email_addresses, image_url } = event.data;
     const userData = {
