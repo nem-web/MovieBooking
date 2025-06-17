@@ -45,19 +45,48 @@ const syncUserDeletion = inngest.createFunction(
   }
 );
 
-// Inngest function to Update user data from database
+// // Inngest function to Update user data from database
+// const syncUserUpdation = inngest.createFunction(
+//   {id: 'update-user-with-clerk'}, 
+//   {event: 'clerk.user.updated'},
+//   async (event) => {
+//     const { id, first_name, last_name, email_addresses, image_url } = event.data;
+//     const userData = {
+//       _id: id,
+//       email: email_addresses[0].email_address,
+//       name: first_name + ' ' + last_name,
+//       image: image_url,
+//     }
+//     await User.findByIdAndUpdate(id, userData)
+//   }
+// );
+
 const syncUserUpdation = inngest.createFunction(
-  {id: 'update-user-with-clerk'}, 
-  {event: 'clerk.user.updated'},
+  { id: 'update-user-with-clerk' },
+  { event: 'clerk/user.updated' },
   async (event) => {
-    const { id, first_name, last_name, email_addresses, image_url } = event.data;
-    const userData = {
-      _id: id,
-      email: email_addresses[0].email_address,
-      name: first_name + ' ' + last_name,
-      image: image_url,
+    const data = event.data;
+
+    console.log("📤 Received user update event:", JSON.stringify(data, null, 2));
+
+    if (!data?.id || !data?.email_addresses?.[0]?.email_address) {
+      console.error("❌ Missing user ID or email. Skipping update.");
+      return;
     }
-    await User.findByIdAndUpdate(id, userData)
+
+    const userData = {
+      _id: data.id,
+      email: data.email_addresses[0].email_address,
+      name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
+      image: data.image_url || '',
+    };
+
+    try {
+      const updated = await User.findByIdAndUpdate(data.id, userData, { new: true, upsert: true });
+      console.log("✅ User updated:", updated);
+    } catch (err) {
+      console.error("❌ Error updating user:", err.message);
+    }
   }
 );
 
