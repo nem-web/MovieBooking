@@ -19,6 +19,7 @@ app.use(clerkMiddleware())
 
 // API Routes
 app.get('/', (req, res)=> res.send('server is running'))
+// app.post("/api/inngest", serve({ client: inngest, functions }));
 app.post("/api/inngest", serve({ client: inngest, functions }));
 
 app.listen(port, ()=> console.log(`Server is running on port ${port}`));
