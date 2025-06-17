@@ -7,32 +7,33 @@ export const inngest = new Inngest({ id: "movie-ticket-booking" });
 // Inngest function to save user data in database 
 const syncUserCreation = inngest.createFunction(
   { id: 'create-user-with-clerk' },
-  { event: 'clerk/user.created' },
+  { event: 'clerk/user.created' }, // ✅ match Clerk exactly
   async (event) => {
-    console.log("📥 Received clerk/user.created event:", JSON.stringify(event, null, 2));
-
+    console.log("✅ clerk/user.created event triggered");
     const data = event.data;
 
-    if (!data || !data.id || !data.email_addresses?.[0]?.email_address) {
-      console.error("❌ Invalid user creation event payload:", data);
+    if (!data?.id) {
+      console.warn("⚠️ Missing user ID in event");
       return;
     }
 
+    // Build user object
     const userData = {
       _id: data.id,
-      email: data.email_addresses[0].email_address,
-      name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
-      image: data.image_url || '',
+      email: data.email_addresses?.[0]?.email_address || "unknown@example.com",
+      name: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
+      image: data.image_url || "",
     };
 
     try {
       await User.create(userData);
-      console.log("✅ User created in DB:", userData);
-    } catch (error) {
-      console.error("❌ Error creating user:", error.message, error);
+      console.log("✅ User created:", userData);
+    } catch (e) {
+      console.error("❌ Error saving user:", e.message);
     }
   }
 );
+
 
 
 // Inngest function to delete user data from database
@@ -75,12 +76,13 @@ const syncUserUpdation = inngest.createFunction(
 );
 
 const logAllEvents = inngest.createFunction(
-  { id: "log-all-events" },
-  { event: "*" },
+  { id: 'log-everything' },
+  { event: '*' }, // catches all
   async (event) => {
-    console.log("🌐 Wildcard event caught:", event.name, JSON.stringify(event.data, null, 2));
+    console.log("🧭 Event received by logAllEvents:", event.name);
   }
 );
+
 
 
 
