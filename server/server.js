@@ -7,7 +7,7 @@ import { serve } from "inngest/express";
 import { inngest, functions } from "./inngest/index.js"
 
 const app = express();
-const port = 3000;
+const port = 4000;
 
 await connectDB();
 
@@ -20,6 +20,7 @@ app.use(clerkMiddleware())
 // API Routes
 app.get('/', (req, res)=> res.send('server is running'))
 // app.post("/api/inngest", serve({ client: inngest, functions }));
-app.post("/api/inngest", serve({ client: inngest, functions }));
+app.use("/api/inngest", serve({ client: inngest, functions }));
+
 
 app.listen(port, ()=> console.log(`Server is running on port ${port}`));
