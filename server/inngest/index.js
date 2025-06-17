@@ -45,22 +45,6 @@ const syncUserDeletion = inngest.createFunction(
   }
 );
 
-// // Inngest function to Update user data from database
-// const syncUserUpdation = inngest.createFunction(
-//   {id: 'update-user-with-clerk'}, 
-//   {event: 'clerk.user.updated'},
-//   async (event) => {
-//     const { id, first_name, last_name, email_addresses, image_url } = event.data;
-//     const userData = {
-//       _id: id,
-//       email: email_addresses[0].email_address,
-//       name: first_name + ' ' + last_name,
-//       image: image_url,
-//     }
-//     await User.findByIdAndUpdate(id, userData)
-//   }
-// );
-
 const syncUserUpdation = inngest.createFunction(
   { id: 'update-user-with-clerk' },
   { event: 'clerk/user.updated' },
@@ -90,7 +74,15 @@ const syncUserUpdation = inngest.createFunction(
   }
 );
 
+const logAllEvents = inngest.createFunction(
+  { id: "log-all-events" },
+  { event: "*" },
+  async (event) => {
+    console.log("🌐 Wildcard event caught:", event.name, JSON.stringify(event.data, null, 2));
+  }
+);
+
 
 
 // Create an empty array where we'll export future Inngest functions
-export const functions = [syncUserCreation, syncUserDeletion, syncUserUpdation];
+export const functions = [syncUserCreation, syncUserDeletion, syncUserUpdation, logAllEvents];
