@@ -80,27 +80,39 @@ export const addShow = async (req, res)=>{
 
 
   }
-  catch{
+  catch(error) {
     console.log(error);
     res.json({success: false, message: error.message || 'Something went wrong'});
   }
 }
 
 // API to get all shows fom the database
-export const getShows = async (req, res)=>{
-  try{
-    const shows = await Show.find({showDateTime: {$gte: new Date()} }).populate('movie').sort({showDateTime: 1});
 
-    // filter unique shows
-    const uniqueShows = new Set(shows.map(show => show.movie))
+export const getShows = async (req, res) => {
+  try {
+    const now = new Date();
 
-    res.json({success: true, shows: Array.from(uniqueShows)});
+    const shows = await Show.find({ showDateTime: { $gte: now } })
+      .populate('movie')
+      .sort({ showDateTime: 1 });
+
+    // Deduplicate by movie._id
+    const uniqueShowsMap = new Map();
+    for (const show of shows) {
+      const movieId = show.movie?._id?.toString();
+      if (movieId && !uniqueShowsMap.has(movieId)) {
+        uniqueShowsMap.set(movieId, show);
+      }
+    }
+
+    res.json({ success: true, shows: Array.from(uniqueShowsMap.values()) });
+  } catch (err) {
+    console.log('Error in getShows:', err);
+    res.json({ success: false, message: err.message });
   }
-  catch (err){
-    console.log(err);
-    res.json({success: false, message: err.message});
-  }
-}
+};
+
+
 
 // API to get a single show from the database
 export const getShow = async (req, res)=>{
@@ -115,11 +127,14 @@ export const getShow = async (req, res)=>{
     const dateTime = {};
 
     shows.forEach((show)=>{
-      const date = show.showDateTime.toISOstring().split('T')[0];
-      if(!dateTime[date]){
-        dateTime[date] = [];
-      }
-      dateTime[date].push({time: show.showDateTime, showId: show._id})
+      shows.forEach((show) => {
+        const date = new Date(show.showDateTime).toISOString().split('T')[0];
+        if (!dateTime[date]) {
+          dateTime[date] = [];
+        }
+        dateTime[date].push({ time: show.showDateTime, showId: show._id });
+      });
+      
     })
 
     res.json({success: true, movie, dateTime});
