@@ -29,6 +29,7 @@ export const getUserBookings = async (req, res) => {
 export const updateFavorite = async (req, res) => {
   try {
     const userId = req.auth().userId;
+
     const { movieId } = req.body;
 
     const user = await clerkClient.users.getUser(userId)
@@ -45,13 +46,18 @@ export const updateFavorite = async (req, res) => {
     }
 
     await clerkClient.users.updateUserMetadata(userId, {privateMetadata: user.privateMetadata});
-    res.json({success: true, message: 'Favorite movie updated successfully'});
-    
-  } catch (error) {
-    console.error(error.message);
     res.json({
+      success: true,
+      message: 'Favorite movie updated successfully',
+      favoriteMovies: user.privateMetadata.favorites,
+    });
+    
+    
+  }  catch (error) {
+    console.error("❌ Backend error:", error.message);
+    return res.json({
       success: false,
-      message: 'Server error while adding favorite movie',
+      message: "Server error while adding favorite movie",
     });
   }
 }

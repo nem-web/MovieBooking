@@ -46,7 +46,12 @@ export const addShow = async (req, res)=>{
         poster_path: movieApiData.poster_path,
         backdrop_path: movieApiData.backdrop_path,
         genres: movieApiData.genres,
-        casts: movieApiData.cast,
+        casts: movieCreditsData.cast.map((c) => ({
+          name: c.name,
+          profile_path: c.profile_path
+            ? `https://image.tmdb.org/t/p/w200${c.profile_path}`
+            : null,
+        })),
         release_date: movieApiData.release_date,
         original_language: movieApiData.original_language,
         tagline: movieApiData.tagline || '',
@@ -58,18 +63,15 @@ export const addShow = async (req, res)=>{
       movie = await Movie.create(movieDetails);
     }
 
-    const showsToCreate = [];
-    showsInput.forEach(show => {
-      const showDate = show.date;
-      show.time.forEach((time)=> {
-        const dateTimeString = `${showDate}T${time}`;
-        showsToCreate.push({
-          movie: movieId,
-          showDateTime: new Date(dateTimeString),
-          showPrice,
-          occupiedSeats: {}
-        })
-      })
+    // Create show documents
+    const showsToCreate = showsInput.map(({ date, time }) => {
+      const dateTimeString = `${date}T${time}`;
+      return {
+        movie: movieId,
+        showDateTime: new Date(dateTimeString),
+        showPrice,
+        occupiedSeats: {},
+      };
     });
 
     if(showsToCreate.length > 0){

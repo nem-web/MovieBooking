@@ -1,5 +1,7 @@
 import Show from "../models/Show.js";
 import User from "../models/User.js";
+import Booking from "../models/Booking.js";
+
 
 
 // API to check if the user is an admin
@@ -21,7 +23,7 @@ export const getDashboardData = async (req, res) => {
       totalUser
     }
 
-    res.json({success: true, getDashboardData});
+    res.json({success: true, dashboardData: getDashboardData});
     
   } catch (error) {
     console.log(error.message);

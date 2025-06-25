@@ -13,6 +13,8 @@ export const AppProvider = ({ children }) => {
   const [shows, setShows] = useState([]);
   const [favoriteMovies, setFavoriteMovies] = useState([]);
 
+  const image_base_url = import.meta.env.VITE_TMDB_IMAGE_BASE_URL;
+
   const { user } = useUser();
   const { getToken } = useAuth();
   const location = useLocation();
@@ -40,7 +42,7 @@ export const AppProvider = ({ children }) => {
       if (data.success) {
         setShows(data.shows);
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Failed to fetch shows");
       }
     } catch (error) {
       console.log(error);
@@ -51,11 +53,11 @@ export const AppProvider = ({ children }) => {
     try {
       const { data } = await axios.get("/api/user/favorites", {
         headers: { Authorization: `Bearer ${await getToken()}` },
-      })
+      });
       if (data.success) {
         setFavoriteMovies(data.movies);
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Failed to fetch favorite movies");
       }
     } catch (error) {
       console.log(error);
@@ -67,13 +69,24 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (user){
+    if (user) {
       fetchIsAdmin();
       fetchFavoriteMovies();
     }
   }, [user]);
 
-  const value = { axios, fetchIsAdmin, user, getToken, navigate, isAdmin, shows, favoriteMovies, fetchFavoriteMovies };
+  const value = {
+    axios,
+    fetchIsAdmin,
+    user,
+    getToken,
+    navigate,
+    isAdmin,
+    shows,
+    favoriteMovies,
+    fetchFavoriteMovies,
+    image_base_url,
+  };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
