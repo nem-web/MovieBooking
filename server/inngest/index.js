@@ -95,11 +95,105 @@ const sendBookingConfirmationEmail = inngest.createFunction(
   }
 )
 
+// Inngest to send reminder email to user 1 day before the show
+const sendShowReminders = inngest.createFunction(
+  {id: 'send-show-reminders'},
+  {cron: "0 */8 * * *"}, // Every 8 hours
+  async ({step})=>{
+    const now = new Date();
+    const in8Hours = new Date(in8Hours.getTime() - 10 * 60 * 1000);
+
+    // prepare reminder tasks
+    const reminderTasks = await step.run("prepare-reminder-tasks", async () => {
+      const shows = await Show.find({
+        showTime: { $gte: windowStart, $lte: in8Hours },
+      }).populate('movie');
+
+      const tasks = [];
+      for (const show of shows) {
+        if(!show.movie || !show.occupiedSeats) continue;
+
+        const userIds = [...new Set(Object.values(show.occupiedSeats))];
+        if(userIds.length === 0) continue;
+
+        const users = await User.find({ _id: { $in: userIds } }).select("name email");
+
+        for(const user of users) {
+          tasks.push({
+            userEmail: user.email,
+            userName: user.name,
+            movieTitle: show.movie.title,
+            showTime: show.showTime,
+          })
+        }
+      }
+      return tasks;
+    })
+    if(reminderTasks.length === 0) return {sent: 0, message: "No reminders to send"};
+
+    // send reminder emails
+    const results = await step.run("send-all-reminders", async()=> {
+      return await Promise.allSettled(
+        reminderTasks.map(task => sendEmail({
+          to: task.userEmail,
+          subject: `Reminder: Upcoming Show - ${task.movieTitle}`,
+          body: `
+            <h1>Show Reminder</h1>
+            <p>Dear ${task.userName},</p>
+            <p>This is a reminder for your upcoming show of <strong>${task.movieTitle}</strong> on <strong>${task.showTime}</strong>.</p>
+            <p>We look forward to seeing you there!</p>
+          `
+        }))
+      )
+    })
+    const sent = results.filter(result => result.status === 'fulfilled').length;
+    const failed = results.length - sent;
+
+    return {
+      sent,
+      failed,
+      message: `Sent ${sent} reminders, failed to send ${failed} reminders`
+    }
+  }
+)
+
+const sendNewShowNotification = inngest.createFunction(
+  {id: 'send-new-show-notifications'},
+  {event: "app/show.added"},
+  async ({event}) => {
+    const {movieTitle, movieId} = event.data;
+
+    const users = await User.find({})
+
+    for (const user of users) {
+      const userEmail = user.email;
+      const userName = user.name;
+
+      const subject = `New Show Alert: ${show.movie.title}`
+      const body = `
+        <h1>New Show Available</h1>
+        <p>Dear ${user.name},</p>
+        <p>We are excited to announce a new show for the movie <strong>${show.movie.title}</strong>.</p>
+        <p>Show Date and Time: ${show.showDateTime}</p>
+        <p>Don't miss out on this opportunity!</p>
+      `;
+      await sendEmail({
+        to: userEmail,
+        subject,
+        body
+      })
+    }
+    return { success: true, message: `Notifications sent to ${users.length} users` };
+  }
+)
+
 export const functions = [
   syncUserCreation,
   syncUserDeletion,
   syncUserUpdate,
   releaseSeatsAndDeleteBooking,
-  sendBookingConfirmationEmail
+  sendBookingConfirmationEmail,
+  sendShowReminders,
+  sendNewShowNotification
 ];
 
