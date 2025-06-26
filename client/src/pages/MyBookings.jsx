@@ -32,6 +32,7 @@ const MyBookings = () => {
 
   const handleRetryPayment = async (orderId) => {
     try {
+      console.log("Retrying payment for orderId:", orderId);
       const { data } = await axios.post(
         "/api/payment/retry",
         { orderId },
