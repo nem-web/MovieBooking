@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Title from "../../components/admin/Title";
 import Loading from "../../components/Loading";
-import { dummyShowsData } from "../../assets/assets";
 import { CheckIcon, DeleteIcon, StarIcon } from "lucide-react";
 import { kConverter } from "../../lib/kConverter";
 import { useAppContext } from "../../context/AppContext";
@@ -77,10 +76,9 @@ const AddShows = () => {
         return;
       }
 
-      const showsInput = Object.entries(dateTimeSelection).flatMap(([date, times]) =>
-        times.map((time) => ({ date, time }))
+      const showsInput = Object.entries(dateTimeSelection).flatMap(
+        ([date, times]) => times.map((time) => ({ date, time }))
       );
-      
 
       const payload = {
         movieId: selectedMovie,
@@ -93,7 +91,7 @@ const AddShows = () => {
       });
 
       if (data.success) {
-        toast(data.message || "Show added successfully");
+        toast.success(data.message || "Show added successfully");
         setSelectedMovie(null);
         setDateTimeSelection({});
         setShowPrice("");
