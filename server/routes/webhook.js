@@ -50,10 +50,23 @@ router.post(
           console.log("[WEBHOOK] Booking ID from notes:", bookingId);
 
           const booking = await Booking.findById(bookingId);
-          if (booking && booking.status !== "confirmed") {
-            booking.status = "confirmed";
+
+          if (booking) {
+            if (booking.status !== "confirmed") {
+              booking.status = "confirmed";
+            }
+
+            booking.isPaid = true;
+            booking.paymentLink = "";
+
             await booking.save();
-            console.log("[WEBHOOK] Booking confirmed ✅:", booking._id);
+            console.log("[WEBHOOK] Booking updated ✅:", {
+              id: booking._id,
+              isPaid: booking.isPaid,
+              paymentLink: booking.paymentLink,
+            });
+          } else {
+            console.log("[WEBHOOK] Booking not found for ID:", bookingId);
           }
         } else {
           console.log("[WEBHOOK] Payment not complete ❌");
