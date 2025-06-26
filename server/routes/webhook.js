@@ -1,6 +1,7 @@
 import express from "express";
 import fetch from "node-fetch";
 import Booking from "../models/Booking.js"; // Adjust path if needed
+import { inngest  } from "../inngest/index.js";
 
 const router = express.Router();
 
@@ -56,6 +57,12 @@ router.post(
             booking.paymentLink = "";
 
             await booking.save();
+
+            // ✅ Trigger Inngest function
+            await inngest.send({
+              name: "app/show.booked",
+              data: { bookingId: booking._id.toString() },
+            });
             
           } else {
             console.log("[WEBHOOK] Booking not found for ID:", bookingId);
