@@ -22,19 +22,18 @@ await connectDB();
 app.use("/api/webhook", webhookRoute);
 app.use('/api/payment', paymentRoutes);
 
+
 // Middleware
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(clerkMiddleware())
 
-app.use(
-  cors({
-    origin: "https://quickshow-pi.vercel.app", // <-- your frontend domain
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true, // only if you're using cookies
-  })
-);
-
+app.use(cors({
+  origin: "https://quickshow-pi.vercel.app", // your frontend domain
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true, // optional, if using cookies/auth
+}));
 
 // API Routes
 app.get('/', (req, res)=> res.send('server is running'))
