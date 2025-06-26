@@ -1,38 +1,65 @@
 import express from "express";
-import crypto from "crypto";
-import Booking from "../models/Booking.js";
+import fetch from "node-fetch";
+import Booking from "../models/Booking.js"; // Adjust path if needed
 
 const router = express.Router();
 
-const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET;
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
+const RAZORPAY_SECRET_KEY = process.env.RAZORPAY_SECRET_KEY;
+
+// Fetch Razorpay order by ID
+async function getOrderDetails(orderId) {
+  const url = `https://api.razorpay.com/v1/orders/${orderId}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization:
+        "Basic " +
+        Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_SECRET_KEY}`).toString("base64"),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch order: ${response.status}`);
+  }
+
+  const data = await response.json();
+  console.log("[WEBHOOK] Fetched Order Details:", data);
+  return data;
+}
 
 router.post(
   "/razorpay",
-  express.raw({ type: "application/json" }), // Required for raw body
+  express.raw({ type: "application/json" }),
   async (req, res) => {
     try {
       const rawBody = req.body.toString("utf8");
-      const signature = req.headers["x-razorpay-signature"];
+      const event = JSON.parse(rawBody);
 
-      console.log("[WEBHOOK] Razorpay Signature:", signature);
-      console.log("[WEBHOOK] Using Secret:", RAZORPAY_WEBHOOK_SECRET);
+      console.log("[WEBHOOK] Received event:", event.event);
 
-      const expectedSignature = crypto
-        .createHmac("sha256", RAZORPAY_WEBHOOK_SECRET)
-        .update(rawBody)
-        .digest("hex");
+      if (event.event === "order.paid") {
+        const orderId = event.payload.order.entity.id;
+        console.log("[WEBHOOK] Order ID:", orderId);
 
-      console.log("[WEBHOOK] Expected Signature:", expectedSignature);
+        const orderDetails = await getOrderDetails(orderId);
 
-      if (signature !== expectedSignature) {
-        console.error("[WEBHOOK] Invalid signature ❌");
-        return res.status(400).json({ success: false, message: "Invalid signature" });
+        if (orderDetails.status === "paid" && orderDetails.amount_due === 0) {
+          const bookingId = orderDetails.notes?.bookingId;
+          console.log("[WEBHOOK] Booking ID from notes:", bookingId);
+
+          const booking = await Booking.findById(bookingId);
+          if (booking && booking.status !== "confirmed") {
+            booking.status = "confirmed";
+            await booking.save();
+            console.log("[WEBHOOK] Booking confirmed ✅:", booking._id);
+          }
+        } else {
+          console.log("[WEBHOOK] Payment not complete ❌");
+        }
       }
 
-      const event = JSON.parse(rawBody);
-      console.log("[WEBHOOK] Verified Event:", event.event);
-
-      // handle order.paid etc...
       return res.status(200).json({ success: true });
     } catch (err) {
       console.error("[WEBHOOK] Error:", err);

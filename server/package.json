@@ -21,6 +21,7 @@
     "express": "^5.1.0",
     "inngest": "^3.39.1",
     "mongoose": "^8.15.2",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.3",
     "razorpay": "^2.9.6",
     "stripe": "^18.2.1",
