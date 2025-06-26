@@ -4,6 +4,7 @@ import BlurCircle from "../components/BlurCircle";
 import timeFormat from "../lib/timeFormat";
 import { dateFormat } from "../lib/dateFormat";
 import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
 
 const MyBookings = () => {
   const currency = import.meta.env.VITE_CURRENCY;
@@ -39,7 +40,7 @@ const MyBookings = () => {
         {
           headers: { Authorization: `Bearer ${await getToken()}` },
         }
-      )
+      );
 
       console.log("Retry Payment Data:", data);
 
@@ -52,7 +53,7 @@ const MyBookings = () => {
           description: "Retry Ticket Payment",
           order_id: data.order.id,
           handler: function (response) {
-            alert("Payment Successful. It will update shortly.");
+            toast.success("Payment Successful. It will update shortly.");
           },
           prefill: {
             email: user.email,
@@ -64,11 +65,11 @@ const MyBookings = () => {
         const rzp = new window.Razorpay(options);
         rzp.open();
       } else {
-        alert("Failed to initiate retry");
+        toast.error("Failed to initiate retry");
       }
     } catch (err) {
       console.error("Retry error:", err);
-      alert("Retry failed");
+      toast.error("Retry failed , Please make new booking");
     }
   };
 
