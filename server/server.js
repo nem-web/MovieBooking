@@ -27,6 +27,14 @@ app.use(express.json())
 app.use(cors());
 app.use(clerkMiddleware())
 
+app.use(
+  cors({
+    origin: "https://quickshow-pi.vercel.app", // <-- your frontend domain
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true, // only if you're using cookies
+  })
+);
+
 
 // API Routes
 app.get('/', (req, res)=> res.send('server is running'))
