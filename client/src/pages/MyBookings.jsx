@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { dummyBookingData } from "../assets/assets";
 import Loading from "../components/Loading";
 import BlurCircle from "../components/BlurCircle";
 import timeFormat from "../lib/timeFormat";
 import { dateFormat } from "../lib/dateFormat";
 import { useAppContext } from "../context/AppContext";
-import { Link } from "react-router-dom";
 
 const MyBookings = () => {
   const currency = import.meta.env.VITE_CURRENCY;
@@ -29,10 +27,47 @@ const MyBookings = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      getMyBookings();
-    }
+    if (user) getMyBookings();
   }, [user]);
+
+  const handleRetryPayment = async (orderId) => {
+    try {
+      const { data } = await axios.post(
+        "/api/payment/retry",
+        { orderId },
+        {
+          headers: { Authorization: `Bearer ${await getToken()}` },
+        }
+      );
+
+      if (data.success) {
+        const options = {
+          key: data.order.key,
+          amount: data.order.amount,
+          currency: data.order.currency,
+          name: "QuickShow",
+          description: "Retry Ticket Payment",
+          order_id: data.order.id,
+          handler: function (response) {
+            alert("Payment Successful. It will update shortly.");
+          },
+          prefill: {
+            email: user.email,
+            contact: user.phone || "",
+          },
+          theme: { color: "#ff0066" },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } else {
+        alert("Failed to initiate retry");
+      }
+    } catch (err) {
+      console.error("Retry error:", err);
+      alert("Retry failed");
+    }
+  };
 
   return !loading ? (
     <div className="relative px-6 md:px-16 lg:px-40 pt-30 md:pt-40 min-h-[80vh]">
@@ -64,17 +99,17 @@ const MyBookings = () => {
           </div>
           <div className="flex flex-col md:items-end md:text-right justify-between p-4">
             <div className="flex items-center gap-4">
-              <p className="text-2xl font-semibold] mb-3">
+              <p className="text-2xl font-semibold mb-3">
                 {currency}
                 {item.amount}
               </p>
               {!item.isPaid && (
-                <Link
-                  to={item.paymentLink}
+                <button
+                  onClick={() => handleRetryPayment(item.paymentLink)}
                   className="bg-primary px-4 py-1.5 mb-3 text-sm rounded-full font-medium cursor-pointer"
                 >
                   Pay Now
-                </Link>
+                </button>
               )}
             </div>
             <div className="text-sm">
