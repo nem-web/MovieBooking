@@ -10,12 +10,15 @@ import bookingRouter from './routes/bookingRoutes.js';
 import adminRouter from './routes/adminRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import { requireAuth } from '@clerk/express';
+import webhookRoute from './routes/webhook.js';
 
 const app = express();
 const port = 4000;
 
 await connectDB();
 
+// Webhook route needs raw body
+app.use("/api/webhook", webhookRoute);
 
 // Middleware
 app.use(express.json())

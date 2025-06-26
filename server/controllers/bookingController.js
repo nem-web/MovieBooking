@@ -89,14 +89,7 @@ export const createBooking = async (req, res) => {
 
     console.log('Booking created successfully!');
 
-    // Trigger Inngest function to verify booking (if not working, remove this)
-    await inngest.send({
-      name: "app/check-payment-status",
-      data: {
-        orderId: razorpayOrder.id,
-        bookingId: booking._id.toString()
-      }
-    });
+    
 
     
   }
