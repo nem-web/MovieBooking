@@ -3,7 +3,8 @@
 import Booking from "../models/Booking.js";
 import Show from '../models/Show.js'; // ✅ required
 import Movie from '../models/Movie.js'; 
-import Stripe from 'stripe';
+// import Stripe from 'stripe';
+import Razorpay from 'razorpay';
 import { inngest } from "../inngest/index.js";
 
 const checkSeatsAvailability = async (showId, selectedSeats) => {
@@ -26,6 +27,7 @@ export const createBooking = async (req, res) => {
     const {userId} = req.auth();
     const {showId, selectedSeats} = req.body;
     const {origin} = req.headers;
+    // console.log("Creating booking for user:", userId, "for show:", showId, "with seats:", selectedSeats);
 
     // Check if the selected seats are available
     const isAvailable = await checkSeatsAvailability(showId, selectedSeats);
@@ -35,6 +37,7 @@ export const createBooking = async (req, res) => {
 
     // Get the show details
     const showData = await Show.findById(showId).populate('movie');
+    // console.log("Show data:", showData);
 
     // Create a new booking
     const booking = await Booking.create({
@@ -43,6 +46,7 @@ export const createBooking = async (req, res) => {
       amount: showData.showPrice * selectedSeats.length,
       bookedSeats: selectedSeats
     })
+    // console.log("Booking created:", booking);
 
     selectedSeats.map((seat)=> {
       showData.occupiedSeats[seat]= userId;
@@ -51,44 +55,46 @@ export const createBooking = async (req, res) => {
     showData.markModified('occupiedSeats');
     await showData.save();
 
-    // Stripe Gateway Integration
-    const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
+    // Initialize Razorpay
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_SECRET_KEY,
+    });
 
-    // Creating line items to for Stripe payment
-    const line_items = [{
-      price_data: {
-        currency: 'inr',
-        product_data: {
-          name: showData.movie.title
-        },
-        unit_amount: showData.showPrice * 100, // Amount in paise
-      }, quantity: 1
-    }]
-
-    const session = await stripeInstance.checkout.sessions.create({
-      success_url: `${origin}/loading/my-bookings`,
-      cancel_url: `${origin}/my-bookings`,
-      line_items: line_items,
-      mode: 'payment',
-      metadata:{
-        bookingId: booking._id.toString()
-      },
-      expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // 30 min expiry
-    })
-
-    booking.paymentLink = session.url
-    await booking.save();
-
-    // Run inngest function to check payment status
-    await inngest.send({
-      name: "app/checkpayment",
-      data: {
+    const razorpayOrder = await razorpay.orders.create({
+      amount: booking.amount * 100,
+      currency: 'INR',
+      receipt: booking._id.toString(),
+      notes: {
         bookingId: booking._id.toString()
       }
-    })
+    });
+    console.log("Razorpay order created:", razorpayOrder);
 
-    res.json({ success: true, 
-      url: session.url})
+    booking.paymentLink = razorpayOrder.id;
+    await booking.save();
+
+    res.json({
+      success: true,
+      order: {
+        id: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        key: process.env.RAZORPAY_KEY_ID,
+        name: showData.movie.title,
+        description: `Tickets for ${showData.movie.title}`,
+        bookingId: booking._id.toString()
+      }
+    });
+
+    // Run inngest function to check payment status
+    // await inngest.send({
+    //   name: "app/checkpayment",
+    //   data: {
+    //     bookingId: booking._id.toString()
+    //   }
+    // })
+    console.log('Booking created successfully!');
   }
   catch(err){
     console.log(err.message);

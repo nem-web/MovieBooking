@@ -22,6 +22,7 @@
     "inngest": "^3.39.1",
     "mongoose": "^8.15.2",
     "nodemailer": "^7.0.3",
+    "razorpay": "^2.9.6",
     "stripe": "^18.2.1",
     "svix": "^1.67.0"
   },

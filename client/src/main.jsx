@@ -7,7 +7,6 @@ import { ClerkProvider } from "@clerk/clerk-react";
 import { AppProvider } from "./context/AppContext.jsx";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-const PROXY_URL = import.meta.env.VITE_CLERK_PROXY_URL;
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");

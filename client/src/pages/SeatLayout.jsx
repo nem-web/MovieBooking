@@ -90,6 +90,16 @@ const SeatLayout = () => {
     }
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const bookTickets = async () => {
     try {
       if (!user) return toast("Please login to book tickets");
@@ -98,19 +108,52 @@ const SeatLayout = () => {
         return toast("Please select time and seats first");
       }
 
-      const { data } = await axios.post(
+      const res = await axios.post(
         "/api/booking/create",
         { showId: selectedTime.showId, selectedSeats },
         { headers: { Authorization: `Bearer ${await getToken()}` } }
       );
 
-      if (data.success) {
-        window.location.href = data.url;
-      } else {
-        toast.error(data.message || "Failed to book tickets");
+      const data = res.data;
+
+      if (!data.success) {
+        return toast.error(data.message || "Booking failed");
       }
+
+      const isScriptLoaded = await loadRazorpayScript();
+      if (!isScriptLoaded) {
+        return toast.error("Razorpay SDK failed to load. Are you online?");
+      }
+
+      const options = {
+        key: data.order.key,
+        amount: data.order.amount,
+        currency: data.order.currency,
+        name: data.order.name,
+        description: data.order.description,
+        order_id: data.order.id,
+        handler: function (response) {
+          // Optionally show confirmation message or redirect user
+          toast.success("Payment successful! Redirecting...");
+          window.location.href = "/loading/my-bookings";
+        },
+        prefill: {
+          name: user.firstName,
+          email: user.primaryEmailAddress?.emailAddress,
+        },
+        notes: {
+          bookingId: data.order.bookingId,
+        },
+        theme: {
+          color: "#1c1c1c",
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
     } catch (error) {
-      toast.error(error.message);
+      console.error("Booking error:", error);
+      toast.error("Error while booking: " + error.message);
     }
   };
 
