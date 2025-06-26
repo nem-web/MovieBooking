@@ -92,75 +92,42 @@ const sendBookingConfirmationEmail = inngest.createFunction(
       to: booking.user.email,
       subject: `Booking Confirmation: "${booking.show.movie.title}"`,
       body: `
-        <h1>Booking Confirmation</h1>
-        <p>Dear ${booking.user.name},</p>
-        <p>Your booking for the movie <strong>${booking.show.movie.title}</strong> on <strong>${booking.show.showDateTime}</strong> has been confirmed.</p>
-        <p>Total Amount: ${booking.amount}</p>
-        <p>Thank you for choosing us!</p>
-      `
+          <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
+            <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+              <h1 style="color: #ff0066; text-align: center;">🎉 Booking Confirmed!</h1>
+              
+              <p style="font-size: 16px; color: #333;">Hi <strong>${booking.user.name}</strong>,</p>
+              
+              <p style="font-size: 16px; color: #333;">
+                We're excited to confirm your booking for the movie:
+              </p>
+
+              <div style="margin: 20px 0; padding: 20px; background-color: #f0f0f5; border-left: 4px solid #ff0066;">
+                <p style="margin: 5px 0;"><strong>🎬 Movie:</strong> <span style="color: #000;">${booking.show.movie.title}</span></p>
+                <p style="margin: 5px 0;"><strong>📅 Show Time:</strong> <span style="color: #000;">${new Date(booking.show.showDateTime).toLocaleString()}</span></p>
+                <p style="margin: 5px 0;"><strong>💺 Seats:</strong> <span style="color: #000;">${booking.bookedSeats.join(", ")}</span></p>
+                <p style="margin: 5px 0;"><strong>💰 Total Amount:</strong> <span style="color: #000;">₹${booking.amount}</span></p>
+              </div>
+
+              <p style="font-size: 15px; color: #555;">
+                You can view your bookings anytime by visiting your account. We look forward to seeing you at the show!
+              </p>
+
+              <p style="font-size: 15px; color: #555;">
+                Need help? Feel free to reply to this email.
+              </p>
+
+              <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
+
+              <p style="text-align: center; font-size: 14px; color: #aaa;">
+                Thank you for choosing <strong>QuickShow</strong>!<br />
+                🎬 Your movie, your moment.
+              </p>
+            </div>
+          </div>
+        `
+
     })
-  }
-)
-
-// Inngest to send reminder email to user 1 day before the show
-const sendShowReminders = inngest.createFunction(
-  {id: 'send-show-reminders'},
-  {cron: "0 */8 * * *"}, // Every 8 hours
-  async ({step})=>{
-    const now = new Date();
-    const in8Hours = new Date(in8Hours.getTime() - 10 * 60 * 1000);
-
-    // prepare reminder tasks
-    const reminderTasks = await step.run("prepare-reminder-tasks", async () => {
-      const shows = await Show.find({
-        showTime: { $gte: windowStart, $lte: in8Hours },
-      }).populate('movie');
-
-      const tasks = [];
-      for (const show of shows) {
-        if(!show.movie || !show.occupiedSeats) continue;
-
-        const userIds = [...new Set(Object.values(show.occupiedSeats))];
-        if(userIds.length === 0) continue;
-
-        const users = await User.find({ _id: { $in: userIds } }).select("name email");
-
-        for(const user of users) {
-          tasks.push({
-            userEmail: user.email,
-            userName: user.name,
-            movieTitle: show.movie.title,
-            showTime: show.showTime,
-          })
-        }
-      }
-      return tasks;
-    })
-    if(reminderTasks.length === 0) return {sent: 0, message: "No reminders to send"};
-
-    // send reminder emails
-    const results = await step.run("send-all-reminders", async()=> {
-      return await Promise.allSettled(
-        reminderTasks.map(task => sendEmail({
-          to: task.userEmail,
-          subject: `Reminder: Upcoming Show - ${task.movieTitle}`,
-          body: `
-            <h1>Show Reminder</h1>
-            <p>Dear ${task.userName},</p>
-            <p>This is a reminder for your upcoming show of <strong>${task.movieTitle}</strong> on <strong>${task.showTime}</strong>.</p>
-            <p>We look forward to seeing you there!</p>
-          `
-        }))
-      )
-    })
-    const sent = results.filter(result => result.status === 'fulfilled').length;
-    const failed = results.length - sent;
-
-    return {
-      sent,
-      failed,
-      message: `Sent ${sent} reminders, failed to send ${failed} reminders`
-    }
   }
 )
 
@@ -175,11 +142,39 @@ const sendNewShowNotification = inngest.createFunction(
     for (const user of users) {
       const subject = `New Show Alert: ${movieTitle}`;
       const body = `
-        <h1>New Show Available</h1>
-        <p>Dear ${user.name},</p>
-        <p>We are excited to announce a new show for the movie <strong>${movieTitle}</strong>.</p>
-        <p>Check it out now and book your seats!</p>
-      `;
+          <div style="font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px;">
+            <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+              <h1 style="color: #ff0066; text-align: center;">🎬 New Show Alert!</h1>
+
+              <p style="font-size: 16px; color: #333;">Hi <strong>${user.name}</strong>,</p>
+
+              <p style="font-size: 16px; color: #333;">
+                We’re thrilled to let you know about a brand new show now available for booking!
+              </p>
+
+              <div style="margin: 20px 0; padding: 20px; background-color: #f0f0f5; border-left: 4px solid #ff0066;">
+                <p style="font-size: 18px; margin: 0;"><strong>🎥 Movie Title:</strong> <span style="color: #000;">${movieTitle}</span></p>
+              </div>
+
+              <p style="font-size: 15px; color: #555;">
+                Be the first to grab your favorite seats before they’re gone!
+              </p>
+
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="https://quickshow-pi.vercel.app" style="background-color: #ff0066; color: #fff; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                  🎟️ Book Now
+                </a>
+              </div>
+
+              <hr style="margin: 40px 0; border: none; border-top: 1px solid #eee;" />
+
+              <p style="text-align: center; font-size: 13px; color: #aaa;">
+                You're receiving this email because you're subscribed to updates from <strong>QuickShow</strong>.<br />
+                Unsubscribe anytime by managing your preferences.
+              </p>
+            </div>
+          </div>
+        `;
 
       await sendEmail({
         to: user.email,
