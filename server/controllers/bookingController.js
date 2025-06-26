@@ -43,7 +43,7 @@ export const createBooking = async (req, res) => {
       amount: showData.showPrice * selectedSeats.length,
       bookedSeats: selectedSeats
     })
-    console.log("Booking created:", booking);
+    // console.log("Booking created:", booking);
 
     selectedSeats.map((seat)=> {
       showData.occupiedSeats[seat]= userId;
@@ -66,12 +66,18 @@ export const createBooking = async (req, res) => {
         bookingId: booking._id.toString()
       }
     });
-    console.log("Razorpay order created:", razorpayOrder);
+    // console.log("Razorpay order created:", razorpayOrder);
 
     booking.paymentLink = razorpayOrder.id;
     await booking.save();
 
-    console.log("Booking updated with payment link:", booking);
+    await inngest.send({
+      name: "app/checkpayment",
+      data: { bookingId: booking._id.toString() },
+    });
+    
+
+    // console.log("Booking updated with payment link:", booking);
 
 
     res.json({

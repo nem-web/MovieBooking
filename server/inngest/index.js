@@ -49,29 +49,35 @@ async ({event})=>{
 
 // Inngest Function to cancel user booking
 const releaseSeatsAndDeleteBooking = inngest.createFunction(
-  {id: 'release-seats-delete-booking'},
-  {event: "app/checkpayment"},
-  async ({event, step}) => {
-    const tenMinutesLater = new Date(Date.now() + 10 * 60 * 1000);
-    await step.sleepUntil('wait-for-10-minutes', tenMinutesLater);
+  { id: "release-seats-delete-booking" },
+  { event: "app/checkpayment" },
+  async ({ event, step }) => {
+    const fiveMinutesLater = new Date(Date.now() + 5 * 60 * 1000);
+    await step.sleepUntil("wait-for-5-minutes", fiveMinutesLater);
 
-    await step.run('check-payment-status', async ()=> {
+    await step.run("check-payment-status", async () => {
       const bookingId = event.data.bookingId;
-      const booking = await Booking.findById(bookingId)
+      const booking = await Booking.findById(bookingId);
 
-      // if payment is not done, release seats and delete booking
-      if(!booking.isPaid){
-        const show = await Show.findById(booking.show);
-        booking.bookedSeats.forEach((seat)=> {
-          delete show.bookedSeats[seat]
-        });
-        show.markModified('occupiedSeats')
-        await show.save();
-        await Booking.findByIdAndDelete(bookingId._id);
-      }
-    })
+      // If booking doesn't exist or is already paid, do nothing
+      if (!booking || booking.isPaid) return;
+
+      const show = await Show.findById(booking.show);
+
+      // Free the seats
+      booking.bookedSeats.forEach((seat) => {
+        delete show.occupiedSeats[seat];
+      });
+
+      show.markModified("occupiedSeats");
+      await show.save();
+
+      // Delete the unpaid booking
+      await Booking.findByIdAndDelete(bookingId);
+    });
   }
-)
+);
+
 
 // Send email to user after booking
 const sendBookingConfirmationEmail = inngest.createFunction(
