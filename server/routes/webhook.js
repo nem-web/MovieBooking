@@ -25,7 +25,6 @@ async function getOrderDetails(orderId) {
   }
 
   const data = await response.json();
-  console.log("[WEBHOOK] Fetched Order Details:", data);
   return data;
 }
 
@@ -37,17 +36,14 @@ router.post(
       const rawBody = req.body.toString("utf8");
       const event = JSON.parse(rawBody);
 
-      console.log("[WEBHOOK] Received event:", event.event);
 
       if (event.event === "order.paid") {
         const orderId = event.payload.order.entity.id;
-        console.log("[WEBHOOK] Order ID:", orderId);
 
         const orderDetails = await getOrderDetails(orderId);
 
         if (orderDetails.status === "paid" && orderDetails.amount_due === 0) {
           const bookingId = orderDetails.notes?.bookingId;
-          console.log("[WEBHOOK] Booking ID from notes:", bookingId);
 
           const booking = await Booking.findById(bookingId);
 
@@ -60,11 +56,7 @@ router.post(
             booking.paymentLink = "";
 
             await booking.save();
-            console.log("[WEBHOOK] Booking updated ✅:", {
-              id: booking._id,
-              isPaid: booking.isPaid,
-              paymentLink: booking.paymentLink,
-            });
+            
           } else {
             console.log("[WEBHOOK] Booking not found for ID:", bookingId);
           }
