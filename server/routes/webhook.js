@@ -8,40 +8,34 @@ const router = express.Router();
 const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET;
 
 router.post("/razorpay", express.raw({ type: "application/json" }), async (req, res) => {
-  console.log("Received webhook request:", req.body);
   try {
+    const rawBody = req.body;
     const signature = req.headers["x-razorpay-signature"];
-    const body = req.body;
+    const bodyStr = rawBody.toString("utf8");
+
+    console.log("[WEBHOOK] Raw buffer:", rawBody);
+    console.log("[WEBHOOK] Parsed string:", bodyStr);
 
     const expectedSignature = crypto
       .createHmac("sha256", RAZORPAY_WEBHOOK_SECRET)
-      .update(body)
+      .update(bodyStr)
       .digest("hex");
 
     if (signature !== expectedSignature) {
+      console.error("[WEBHOOK] Invalid signature");
       return res.status(400).json({ success: false, message: "Invalid signature" });
     }
 
-    const event = JSON.parse(body);
+    const event = JSON.parse(bodyStr);
+    console.log("[WEBHOOK] Event:", event);
 
-    if (event.event === "payment.captured" || event.event === "order.paid") {
-      const orderId = event.payload.payment.entity.order_id;
-
-      const booking = await Booking.findOne({ paymentLink: orderId });
-
-      if (booking && booking.status !== "confirmed") {
-        booking.status = "confirmed";
-        await booking.save();
-
-        console.log("Booking confirmed via webhook:", booking._id);
-      }
-    }
-
+    // handle event...
     res.status(200).json({ success: true });
   } catch (err) {
-    console.error("Webhook error:", err);
+    console.error("[WEBHOOK] Error:", err);
     res.status(500).json({ success: false });
   }
 });
+
 
 export default router;
