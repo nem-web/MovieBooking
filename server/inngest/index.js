@@ -46,6 +46,64 @@ async ({event})=>{
   await User.findByIdAndUpdate(id, userData)
 })
 
+// Inngest Function to check payment status and update booking
+const checkPaymentStatus = inngest.createFunction(
+  { id: "check-payment-status" },
+  { event: "app/check-payment-status" },
+  async ({ event, step }) => {
+    const { orderId, bookingId } = event.data;
+
+    // Wait 5 minutes
+    await step.sleep("wait-5-minutes", "5m");
+
+    await step.run("check-payment-after-5-min", async () => {
+      const response = await axios.get(`https://api.razorpay.com/v1/orders/${orderId}`, {
+        auth: {
+          username: process.env.RAZORPAY_KEY_ID,
+          password: process.env.RAZORPAY_SECRET_KEY
+        }
+      });
+
+      const data = response.data;
+      const booking = await Booking.findById(bookingId);
+
+      if (data.status === "paid") {
+        booking.status = "confirmed";
+        await booking.save();
+        console.log("Payment confirmed after 5 minutes");
+        return;
+      }
+
+      console.log("Still unpaid after 5 minutes");
+    });
+
+    // Wait 5 more minutes (total 10)
+    await step.sleep("wait-10-minutes", "5m");
+
+    await step.run("check-payment-after-10-min", async () => {
+      const response = await axios.get(`https://api.razorpay.com/v1/orders/${orderId}`, {
+        auth: {
+          username: process.env.RAZORPAY_KEY_ID,
+          password: process.env.RAZORPAY_SECRET_KEY
+        }
+      });
+
+      const data = response.data;
+      const booking = await Booking.findById(bookingId);
+
+      if (data.status === "paid") {
+        booking.status = "confirmed";
+        await booking.save();
+        console.log("Payment confirmed after 10 minutes");
+      } else {
+        booking.status = "cancelled";
+        await booking.save();
+        console.log("Payment failed after 10 minutes. Booking cancelled.");
+      }
+    });
+  }
+);
+
 // Inngest Function to cancel user booking
 const releaseSeatsAndDeleteBooking = inngest.createFunction(
   {id: 'release-seats-delete-booking'},
@@ -191,6 +249,7 @@ export const functions = [
   syncUserCreation,
   syncUserDeletion,
   syncUserUpdate,
+  checkPaymentStatus,
   releaseSeatsAndDeleteBooking,
   sendBookingConfirmationEmail,
   sendShowReminders,

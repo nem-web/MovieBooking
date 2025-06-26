@@ -3,6 +3,7 @@
 import Booking from "../models/Booking.js";
 import Show from '../models/Show.js'; // ✅ required
 import Movie from '../models/Movie.js'; 
+// import Stripe from 'stripe';
 import Razorpay from 'razorpay';
 import { inngest } from "../inngest/index.js";
 
@@ -26,6 +27,7 @@ export const createBooking = async (req, res) => {
     const {userId} = req.auth();
     const {showId, selectedSeats} = req.body;
     const {origin} = req.headers;
+    // console.log("Creating booking for user:", userId, "for show:", showId, "with seats:", selectedSeats);
 
     // Check if the selected seats are available
     const isAvailable = await checkSeatsAvailability(showId, selectedSeats);
@@ -35,6 +37,7 @@ export const createBooking = async (req, res) => {
 
     // Get the show details
     const showData = await Show.findById(showId).populate('movie');
+    // console.log("Show data:", showData);
 
     // Create a new booking
     const booking = await Booking.create({
@@ -43,7 +46,7 @@ export const createBooking = async (req, res) => {
       amount: showData.showPrice * selectedSeats.length,
       bookedSeats: selectedSeats
     })
-    console.log("Booking created:", booking);
+    // console.log("Booking created:", booking);
 
     selectedSeats.map((seat)=> {
       showData.occupiedSeats[seat]= userId;
@@ -71,9 +74,6 @@ export const createBooking = async (req, res) => {
     booking.paymentLink = razorpayOrder.id;
     await booking.save();
 
-    console.log("Booking updated with payment link:", booking);
-
-
     res.json({
       success: true,
       order: {
@@ -87,18 +87,14 @@ export const createBooking = async (req, res) => {
       }
     });
 
+    // Run inngest function to check payment status
+    // await inngest.send({
+    //   name: "app/checkpayment",
+    //   data: {
+    //     bookingId: booking._id.toString()
+    //   }
+    // })
     console.log('Booking created successfully!');
-
-    // Trigger Inngest function to verify booking (if not working, remove this)
-    await inngest.send({
-      name: "app/check-payment-status",
-      data: {
-        orderId: razorpayOrder.id,
-        bookingId: booking._id.toString()
-      }
-    });
-
-    
   }
   catch(err){
     console.log(err.message);

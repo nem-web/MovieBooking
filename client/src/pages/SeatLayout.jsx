@@ -149,7 +149,10 @@ const SeatLayout = () => {
         },
       };
 
+      console.log("Razorpay options:", options);
+
       const razorpay = new window.Razorpay(options);
+      
       razorpay.open();
     } catch (error) {
       console.error("Booking error:", error);

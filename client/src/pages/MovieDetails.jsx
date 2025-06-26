@@ -27,7 +27,6 @@ const MovieDetails = () => {
     try {
       const { data } = await axios.get(`/api/show/${id}`);
       if (data.success) {
-        // console.log(data);
         setShow(data);
       }
     } catch (error) {
@@ -36,7 +35,6 @@ const MovieDetails = () => {
   };
 
   const handleFavorite = async () => {
-
     if (!user) {
       toast.error("Please Log in to proceed");
       return;
@@ -73,7 +71,6 @@ const MovieDetails = () => {
       }
     }
   };
-  
 
   useEffect(() => {
     getShow();
@@ -135,11 +132,10 @@ const MovieDetails = () => {
       <p className="text-lg font-medium mt-20">Your Favorite cast</p>
       <div className="overflow-x-auto no-scrollbar mt-8 pb-4">
         <div className="flex items-center gap-4 w-max px-4">
-          {console.log(show.movie)}
           {show.movie.casts.slice(0, 12).map((cast, index) => (
             <div key={index} className="flex flex-col items-center text-center">
               <img
-                src={ image_base_url + cast.profile_path}
+                src={image_base_url + cast.profile_path}
                 alt=""
                 className="rounded-full h-20 md:h-20 aspect-square object-cover"
               />
