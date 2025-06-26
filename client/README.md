@@ -1,169 +1,147 @@
-# 🎬 Movie Booking Website (MERN Stack)
+# 🎬 QuickShow
 
-A full-featured movie ticket booking web application built using the **MERN** stack: **MongoDB**, **Express.js**, **React**, and **Node.js**. The platform includes user authentication, seat booking, movie management, and a secure admin dashboard.
+A sleek, full-stack movie ticket booking web application built with modern technologies: **React**, **Tailwind CSS**, **Clerk Authentication**, **Razorpay Payments**, **Inngest**, and the **TMDB API**.
 
-> 🚧 This project is currently in development. New features and improvements are being added regularly.
+🌐 **Live Demo:** [quickshow-pi.vercel.app](https://quickshow-pi.vercel.app)
 
----
-
-## 🔥 Features
-
-### 🎟 User Functionality
-- 🎞 Browse and filter movies by genre, language, and date
-- 📍 Choose cinemas and showtimes
-- 🪑 Interactive seat selection
-- ✅ Instant booking confirmation
-- 🧾 View past bookings and ticket details
-- 🔐 Secure sign-up and login with JWT
-
-### 🛠 Admin Dashboard
-- ➕ Add/Edit/Delete movies and showtimes
-- 📊 View real-time booking analytics
-- 👥 Manage users and roles
-- 🔐 Admin authentication and protected routes
 
 ---
 
-## 🛠 Tech Stack
+## 🚀 Features
 
-| Layer            | Technologies                        |
-|------------------|-------------------------------------|
-| Frontend         | React, Tailwind CSS, Axios          |
-| Backend          | Node.js, Express.js                 |
-| Database         | MongoDB, Mongoose                   |
-| Authentication   | JWT, bcrypt                         |
-| State Management | React Context (or Redux planned)    |
-| Admin UI         | Custom dashboard (React-based)      |
+- ✨ Modern UI/UX with Tailwind CSS
+- 🎬 Browse movies with TMDB integration
+- 🔐 User authentication with Clerk (Signup/Login)
+- 🎟️ Book movie tickets with interactive seat selection
+- 💳 Razorpay payment integration
+- 📧 Booking confirmation emails via Inngest
+- 🛠️ Admin panel to add shows dynamically
+- ⏳ Auto-cancel unpaid bookings after 5 minutes
+- 🔁 Retry failed payments
+- 📱 Fully responsive on all devices
 
 ---
 
-## 📦 Installation Guide
+## 🧪 Tech Stack
 
-### 1️⃣ Clone the Repository
+| Frontend           | Backend                  | Integrations        |
+|--------------------|--------------------------|---------------------|
+| React (Vite)       | Node.js + Express.js     | Razorpay Payments   |
+| Tailwind CSS       | MongoDB (Mongoose)       | Clerk Auth          |
+| React Context API  | Inngest (Event handling) | TMDB Movie API      |
+| Axios, Razorpay SDK| Cloud Deployment (Vercel)| Nodemailer (Emails) |
+
+---
+
+## 🛠️ Setup & Installation
+
+> 💡 **Requirements:** Node.js, MongoDB, Clerk account, Razorpay account, TMDB API key.
+
+### 1️⃣ Clone & Configure Environment
 
 ```bash
-git clone https://github.com/your-username/movie-booking-app.git
-cd movie-booking-app
+git clone https://github.com/nem-web/MovieBooking.git
+cd MovieBooking
 ```
 
-### 2️⃣ Install Dependencies
+Create a `.env` file in the `/server` directory:
 
-**For Frontend:**
+```env
+# Razorpay
+RAZORPAY_KEY_ID=your_razorpay_key
+RAZORPAY_SECRET_KEY=your_razorpay_secret
+
+# MongoDB
+MONGODB_URI=mongodb+srv://your_user:pass@cluster.mongodb.net/quickshow
+
+# Clerk
+CLERK_SECRET_KEY=your_clerk_secret_key
+CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+
+# Inngest
+INNGEST_EVENT_KEY=your_inngest_key
+
+# TMDB
+TMDB_API_KEY=your_tmdb_api_key
+```
+
+---
+
+### 2️⃣ Start the Frontend
+
 ```bash
 cd client
 npm install
+npm run dev
 ```
 
-**For Backend:**
+### 3️⃣ Start the Backend
+
 ```bash
 cd ../server
 npm install
-```
-
-### 3️⃣ Setup Environment Variables
-
-Create a `.env` file inside the `/server` directory:
-
-```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-```
-
-Replace `your_mongodb_connection_string` and `your_secret_key` with your actual credentials.
-
-### 4️⃣ Start Development Server
-
-**Backend:**
-```bash
-cd server
 npm run dev
 ```
 
-**Frontend:**
-```bash
-cd client
-npm run dev
-```
-
-Now open your browser and navigate to [http://localhost:5173](http://localhost:5173) (or whatever port Vite/React is running on).
-
 ---
 
-## 📁 Project Structure
+## ⚙️ Folder Structure
 
 ```
-movie-booking-app/
-├── client/               # React frontend
-│   ├── src/
-│   ├── public/
-│   └── package.json
-│
-├── server/               # Node.js + Express backend
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   ├── middleware/
-│   ├── .env
-│   └── package.json
-│
-├── README.md
-└── .gitignore
+quickshow/
+├── client/                # React frontend
+│   ├── components/        # Reusable components
+│   ├── context/           # AppContext for Axios & auth
+│   └── pages/             # Routes: Home, MyBookings, Admin etc.
+├── server/                # Express backend
+│   ├── controllers/       # Route logic
+│   ├── models/            # Mongoose models
+│   ├── routes/            # API routes
+│   ├── inngest/           # Email and booking events
+│   └── utils/             # Helper functions
 ```
 
 ---
 
-## ✅ TODO
+## 💌 Booking Confirmation Email (Inngest)
 
-- [ ] Set up authentication
-- [ ] Admin dashboard UI
-- [ ] Implement full CRUD for movies and shows
-- [ ] Seat selection UI
-- [ ] Payment gateway integration
-- [ ] Email/SMS ticket confirmation
-- [ ] Deploy to production (Render/Vercel + MongoDB Atlas)
+- Emails are automatically sent after successful payment with Razorpay using Inngest.
+- If payment fails, seat booking auto-expires after 5 minutes.
+- Admins can notify users on new show additions via email.
 
 ---
 
-## 🤝 Contributing
+## 👨‍💻 Admin Access
 
-Contributions are welcome!
-
-To contribute:
-
-1. Fork this repo
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -m 'Add your feature'`)
-4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
+- Add new shows by selecting date/time
+- View all added movies/shows
+- Admin interface is protected via Clerk roles (extendable)
 
 ---
 
-## 📸 Screenshots
+## 🧠 Lessons Learned
 
-(Coming soon — once UI is more polished)
-
----
-
-## 🌐 Live Demo
-
-(Deployment in progress — link will be updated once available)
+- Event-driven architecture with Inngest improves reliability
+- Razorpay’s web-based payment flow is smooth for users
+- Managing concurrent seat bookings is key to avoiding race conditions
+- TMDB offers a rich API for movie data with minimal config
 
 ---
 
-## 📜 License
+## 🧾 License
 
 This project is licensed under the MIT License.
 
 ---
 
-## 👨‍💻 Author
+## 📬 Contact
 
-Made with ❤️ by Your Name
+Have suggestions or found a bug?  
+Feel free to reach out:
+
+- 📧 Email: kathariyanemchandra@gmail.com
+- 🐙 GitHub: [https://github.com/nem-web](https://github.com/nem-web)
+
+⭐️ If you like this project, give it a star on GitHub!
 
 ---
-
-### ✅ Final Notes:
-- Replace `nem-web` with your GitHub username
-- Add any deployment or demo links when ready
-- You can also include screenshots/gifs later under the `📸 Screenshots` section
