@@ -38,7 +38,9 @@ const MyBookings = () => {
         {
           headers: { Authorization: `Bearer ${await getToken()}` },
         }
-      );
+      )
+
+      console.log("Retry Payment Data:", data);
 
       if (data.success) {
         const options = {
