@@ -29,7 +29,7 @@ A sleek, full-stack movie ticket booking web application built with modern techn
 | React (Vite)       | Node.js + Express.js     | Razorpay Payments   |
 | Tailwind CSS       | MongoDB (Mongoose)       | Clerk Auth          |
 | React Context API  | Inngest (Event handling) | TMDB Movie API      |
-| Axios, Razorpay SDK| Cloud Deployment (Vercel)| Nodemailer (Emails) |
+| Axios, Razorpay SDK| Cloud Deployment (Vercel)| Gmail (Emails) |
 
 ---
 
