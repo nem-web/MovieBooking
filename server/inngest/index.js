@@ -11,6 +11,18 @@ const generateTicketHTML = (booking, movie) => {
   const gst = +(0.18 * (totalPaid - 11)).toFixed(2);
   const basePrice = +(totalPaid - convenienceFee - gst).toFixed(2);
 
+  const qrData = {
+    bookingId: booking._id.toString(),
+    showId: booking.show._id.toString(),
+    movie: booking.show.movie.title,
+    seats: booking.bookedSeats,
+    amount: booking.amount,
+    time: booking.show.showDateTime
+  };
+  
+  const qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(JSON.stringify(qrData))}`;
+  
+
 
   return `
 <div style="font-family: 'Segoe UI', sans-serif; background-color: #f6f8fa; padding: 5vw;">
@@ -31,7 +43,8 @@ const generateTicketHTML = (booking, movie) => {
             <p style="margin: 0; font-size: 14px; color: #888;">${movie.tagline || ''}</p>
           </td>
           <td style="text-align: right;">
-            <img src="https://quickchart.io/qr?text=BOOKING-${booking._id}" alt="QR Code" style="width: 80px; border-radius: 4px;" />
+            <img src="${qrUrl}" alt="QR Code with booking details" style="width: 80px; border-radius: 4px;" />
+
           </td>
         </tr>
       </table>
