@@ -29,7 +29,7 @@ const generateTicketHTML = (booking, movie) => {
   <div style="width: 100%; max-width: 600px; margin: auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.1);">
     <div style="background: linear-gradient(to right, #4a00e0, #8e2de2); color: #fff; padding: 24px 5%;">
       <h2 style="margin: 0; font-size: 22px;">🎉 Booking Confirmed – QuickShow</h2>
-      <p style="margin: 8px 0 0; font-size: 14px;">Booking ID: <strong>${String(booking._id).slice(-6).toUpperCase()}</strong></p>
+      <p style="margin: 8px 0 0; font-size: 14px;">Booking ID: <strong>${String(booking._id).toUpperCase()}</strong></p>
     </div>
 
     <div style="padding: 24px 5%;">
