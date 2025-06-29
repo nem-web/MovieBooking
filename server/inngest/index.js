@@ -6,10 +6,11 @@ import sendEmail from "../configs/nodeMailer.js";
 
 // --- 📧 Ticket HTML Generator ---
 const generateTicketHTML = (booking, movie) => {
-  const basePrice = booking.amount - 11 - (0.18 * (booking.amount - 11));
+  const totalPaid = booking.amount;
   const convenienceFee = 11;
-  const gst = 0.18 * (basePrice + convenienceFee);
-  const totalPaid = (basePrice + convenienceFee + gst).toFixed(2);
+  const gst = +(0.18 * (totalPaid - 11)).toFixed(2);
+  const basePrice = +(totalPaid - convenienceFee - gst).toFixed(2);
+
 
   return `
 <div style="font-family: 'Segoe UI', sans-serif; background-color: #f6f8fa; padding: 5vw;">
