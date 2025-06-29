@@ -81,16 +81,20 @@ const releaseSeatsAndDeleteBooking = inngest.createFunction(
 
 // Send email to user after booking
 const sendBookingConfirmationEmail = inngest.createFunction(
-  {id: 'send-booking-confirmation-email'},
-  {event: "app/show.booked"},
-  async ({event, step}) => {
-    const {bookingId} = event.data;
+  { id: 'send-booking-confirmation-email' },
+  { event: 'app/show.booked' },
+  async ({ event, step }) => {
+    const { bookingId } = event.data;
 
-    const booking = await Booking.findById(bookingId).populate({path: 'show', populate: {path: "movie"}}).populate('user');
+    const booking = await Booking.findById(bookingId)
+      .populate({ path: 'show', populate: { path: 'movie' } })
+      .populate('user');
+
+    const movie = booking.show.movie;
 
     await sendEmail({
       to: booking.user.email,
-      subject: `Booking Confirmation: "${booking.show.movie.title}"`,
+      subject: `🎟️ Booking Confirmation: "${movie.title}"`,
       body: `
 <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f6f8fa; padding: 30px;">
   <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.1);">
@@ -98,7 +102,7 @@ const sendBookingConfirmationEmail = inngest.createFunction(
     <!-- Header -->
     <div style="background: linear-gradient(to right, #4a00e0, #8e2de2); color: #fff; padding: 24px 32px;">
       <h2 style="margin: 0; font-size: 22px;">🎉 Booking Confirmed – QuickShow</h2>
-      <p style="margin: 8px 0 0; font-size: 14px;">Booking ID: <strong>${booking._id.toString().slice(-6).toUpperCase()}</strong></p>
+      <p style="margin: 8px 0 0; font-size: 14px;">Booking ID: <strong>${String(booking._id).slice(-6).toUpperCase()}</strong></p>
     </div>
 
     <!-- Movie Info -->
@@ -110,7 +114,7 @@ const sendBookingConfirmationEmail = inngest.createFunction(
           </td>
           <td style="padding-left: 20px; vertical-align: top;">
             <h3 style="margin: 0 0 8px; font-size: 20px; color: #2c3e50;">${movie.title}</h3>
-            <p style="margin: 0; font-size: 14px; color: #888;">${movie.tagline}</p>
+            <p style="margin: 0; font-size: 14px; color: #888;">${movie.tagline || ''}</p>
           </td>
           <td style="text-align: right;">
             <img src="https://quickchart.io/qr?text=BOOKING-${booking._id}" alt="QR Code" style="border-radius: 4px;" />
@@ -148,11 +152,11 @@ const sendBookingConfirmationEmail = inngest.createFunction(
     </div>
   </div>
 </div>
-`
-
-    })
+      `,
+    });
   }
-)
+);
+
 
 const sendNewShowNotification = inngest.createFunction(
   { id: 'send-new-show-notifications' },
