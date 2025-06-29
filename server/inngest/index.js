@@ -92,40 +92,63 @@ const sendBookingConfirmationEmail = inngest.createFunction(
       to: booking.user.email,
       subject: `Booking Confirmation: "${booking.show.movie.title}"`,
       body: `
-          <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
-            <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-              <h1 style="color: #ff0066; text-align: center;">🎉 Booking Confirmed!</h1>
-              
-              <p style="font-size: 16px; color: #333;">Hi <strong>${booking.user.name}</strong>,</p>
-              
-              <p style="font-size: 16px; color: #333;">
-                We're excited to confirm your booking for the movie:
-              </p>
+<div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f6f8fa; padding: 30px;">
+  <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.1);">
+    
+    <!-- Header -->
+    <div style="background: linear-gradient(to right, #4a00e0, #8e2de2); color: #fff; padding: 24px 32px;">
+      <h2 style="margin: 0; font-size: 22px;">🎉 Booking Confirmed – QuickShow</h2>
+      <p style="margin: 8px 0 0; font-size: 14px;">Booking ID: <strong>${booking._id.slice(-6).toUpperCase()}</strong></p>
+    </div>
 
-              <div style="margin: 20px 0; padding: 20px; background-color: #f0f0f5; border-left: 4px solid #ff0066;">
-                <p style="margin: 5px 0;"><strong>🎬 Movie:</strong> <span style="color: #000;">${booking.show.movie.title}</span></p>
-                <p style="margin: 5px 0;"><strong>📅 Show Time:</strong> <span style="color: #000;">${new Date(booking.show.showDateTime).toLocaleString()}</span></p>
-                <p style="margin: 5px 0;"><strong>💺 Seats:</strong> <span style="color: #000;">${booking.bookedSeats.join(", ")}</span></p>
-                <p style="margin: 5px 0;"><strong>💰 Total Amount:</strong> <span style="color: #000;">₹${booking.amount}</span></p>
-              </div>
+    <!-- Movie Info -->
+    <div style="padding: 24px 32px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="width: 120px;">
+            <img src="https://image.tmdb.org/t/p/w200${movie.poster_path}" alt="Movie Poster" style="width: 100px; border-radius: 8px;" />
+          </td>
+          <td style="padding-left: 20px; vertical-align: top;">
+            <h3 style="margin: 0 0 8px; font-size: 20px; color: #2c3e50;">${movie.title}</h3>
+            <p style="margin: 0; font-size: 14px; color: #888;">${movie.tagline}</p>
+          </td>
+          <td style="text-align: right;">
+            <img src="https://quickchart.io/qr?text=BOOKING-${booking._id}" alt="QR Code" style="border-radius: 4px;" />
+          </td>
+        </tr>
+      </table>
 
-              <p style="font-size: 15px; color: #555;">
-                You can view your bookings anytime by visiting your account. We look forward to seeing you at the show!
-              </p>
+      <!-- Booking Summary -->
+      <div style="margin-top: 20px; background: #f9f9fb; border: 1px dashed #ccc; border-radius: 8px; padding: 16px;">
+        <p><strong>🎟️ Seats:</strong> ${booking.bookedSeats.join(', ')}</p>
+        <p><strong>🕒 Show Time:</strong> ${new Date(booking.show.showDateTime).toLocaleString()}</p>
+        <p><strong>💰 Amount Paid:</strong> ₹${booking.amount} <span style="color: green;">(Paid)</span></p>
+      </div>
 
-              <p style="font-size: 15px; color: #555;">
-                Need help? Feel free to reply to this email.
-              </p>
+      <p style="margin-top: 24px; font-size: 14px; color: #444;">
+        Hi <strong>${booking.user.name}</strong>, your booking is confirmed! Please present the QR code above at the cinema entrance.
+      </p>
 
-              <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
+      <!-- Instructions -->
+      <div style="margin-top: 30px; font-size: 12px; color: #888; line-height: 1.6;">
+        <p><strong>Important:</strong></p>
+        <ul style="padding-left: 20px; margin: 10px 0;">
+          <li>This booking is final and cannot be canceled or modified.</li>
+          <li>Please carry a valid ID proof for verification at entry.</li>
+          <li>Seats not claimed 10 minutes before showtime may be released.</li>
+          <li>One ticket is required per person, including children above 3 years.</li>
+        </ul>
+      </div>
+    </div>
 
-              <p style="text-align: center; font-size: 14px; color: #aaa;">
-                Thank you for choosing <strong>QuickShow</strong>!<br />
-                🎬 Your movie, your moment.
-              </p>
-            </div>
-          </div>
-        `
+    <!-- Footer -->
+    <div style="background-color: #f1f1f1; text-align: center; padding: 16px; font-size: 12px; color: #888;">
+      Thank you for choosing <strong>QuickShow</strong>!<br />
+      🎬 Your movie, your moment.
+    </div>
+  </div>
+</div>
+`
 
     })
   }
