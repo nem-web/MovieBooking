@@ -98,7 +98,7 @@ const sendBookingConfirmationEmail = inngest.createFunction(
     <!-- Header -->
     <div style="background: linear-gradient(to right, #4a00e0, #8e2de2); color: #fff; padding: 24px 32px;">
       <h2 style="margin: 0; font-size: 22px;">🎉 Booking Confirmed – QuickShow</h2>
-      <p style="margin: 8px 0 0; font-size: 14px;">Booking ID: <strong>${booking._id.slice(-6).toUpperCase()}</strong></p>
+      <p style="margin: 8px 0 0; font-size: 14px;">Booking ID: <strong>${booking._id.toString().slice(-6).toUpperCase()}</strong></p>
     </div>
 
     <!-- Movie Info -->
