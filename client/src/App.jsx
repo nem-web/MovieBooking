@@ -17,6 +17,7 @@ import Dashboard from "./pages/admin/Dashboard.jsx";
 import { useAppContext } from "./context/AppContext.jsx";
 import { SignIn } from "@clerk/clerk-react";
 import Loading from "./components/Loading.jsx";
+import Chatbot from "./components/Chatbot.jsx";
 
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
@@ -44,6 +45,7 @@ const App = () => {
          <Route path="list-bookings" element={<ListBookings/>}/>
         </Route>
       </Routes>
+      {!isAdminRoute && <Chatbot />}
       {!isAdminRoute && <Footer />}
     </>
   );
