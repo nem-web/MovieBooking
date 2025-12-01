@@ -12,6 +12,7 @@ import userRouter from './routes/userRoutes.js';
 import { requireAuth } from '@clerk/express';
 import webhookRoute from './routes/webhook.js';
 import paymentRoutes from './routes/payment.js';
+import chatRoutes from './routes/chat.js';
 
 const app = express();
 const port = 4000;
@@ -35,6 +36,13 @@ app.use('/api/show', showRouter)
 app.use('/api/booking', bookingRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/user', userRouter);
+
+// All chat requests will be handled by the chatRoutes router
+app.use('/api/chat', chatRoutes); 
+
+app.get('/', (req, res) => {
+    res.send('Chatbot Server is Running!');
+});
 
 
 app.listen(port, ()=> console.log(`Server is running on port ${port}`));

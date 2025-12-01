@@ -5,6 +5,7 @@ import { MdSupportAgent, MdConfirmationNumber , MdLocalOffer } from "react-icons
 import { BiMoviePlay, BiHelpCircle } from "react-icons/bi";
 import { IoMdSend } from "react-icons/io";
 import { RiRefund2Line } from "react-icons/ri";
+// import { options } from "../../../server/routes/chat";
 
 // 1. CONFIGURATION: Define your Menu Hierarchy here
 const MENU_DATA = {
@@ -67,10 +68,45 @@ export default function BookMyShowWidget() {
   };
 
   // Handle standard Chat sending
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = async (text = input) => {
+    if (!text.trim()) return;
+
     setMessages((prev) => [...prev, { text: input, sender: "user" }]);
     setInput("");
+
+    try{
+      const response = await fetch('/api/chat/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: text })
+      });
+
+      if(!response.ok){
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+
+      const botReply = {
+        text: data.reply,
+        sender: "bot",
+        options: data.options || []
+      }
+
+      setMessages((prev) => [...prev, botReply]);
+    } catch(err){
+      console.error("Chatbot API Error:", error);
+      setMessages((prev) => [...prev, { 
+          text: "Sorry, I can't connect to the server right now. Try again.", 
+          sender: "system" 
+      }]);
+    }
+
+    
+
+
     
     // Simulate generic response
     setTimeout(() => {
