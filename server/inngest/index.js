@@ -102,8 +102,10 @@ export const inngest = new Inngest({ id: "movie-ticket-booking" });
 
 // User Functions
 const syncUserCreation = inngest.createFunction(
-  { id: 'sync-user-creation' },
-  { event: 'clerk/user.created' },
+  {
+    id: 'sync-user-creation',
+    triggers: { event: 'clerk/user.created' },
+  },
   async ({ event }) => {
     const { id, first_name, last_name, email_addresses, image_url } = event.data;
     await User.create({
@@ -116,8 +118,10 @@ const syncUserCreation = inngest.createFunction(
 );
 
 const syncUserDeletion = inngest.createFunction(
-  { id: 'delete-user-with-clerk' },
-  { event: 'clerk/user.deleted' },
+  {
+    id: 'delete-user-with-clerk',
+    triggers: { event: 'clerk/user.deleted' },
+  },
   async ({ event }) => {
     const { id } = event.data;
     await User.findByIdAndDelete(id);
@@ -125,8 +129,10 @@ const syncUserDeletion = inngest.createFunction(
 );
 
 const syncUserUpdate = inngest.createFunction(
-  { id: 'sync-user-update' },
-  { event: 'clerk/user.updated' },
+  {
+    id: 'sync-user-update',
+    triggers: { event: 'clerk/user.updated' },
+  },
   async ({ event }) => {
     const { id, first_name, last_name, email_addresses, image_url } = event.data;
     await User.findByIdAndUpdate(id, {
@@ -140,8 +146,11 @@ const syncUserUpdate = inngest.createFunction(
 
 // Booking Cancellation if unpaid
 const releaseSeatsAndDeleteBooking = inngest.createFunction(
-  { id: "release-seats-delete-booking" },
-  { event: "app/checkpayment" },
+  { 
+    id: "release-seats-delete-booking",
+    triggers: { event: "app/checkpayment" },
+  },
+  
   async ({ event, step }) => {
     const bookingId = event.data.bookingId;
 
@@ -162,8 +171,10 @@ const releaseSeatsAndDeleteBooking = inngest.createFunction(
 
 // Booking Confirmation Email (Responsive + Fee Summary)
 const sendBookingConfirmationEmail = inngest.createFunction(
-  { id: 'send-booking-confirmation-email' },
-  { event: 'app/show.booked' },
+  {
+    id: 'send-booking-confirmation-email',
+    triggers: { event: 'app/show.booked' },
+  },
   async ({ event }) => {
     const booking = await Booking.findById(event.data.bookingId)
       .populate({ path: 'show', populate: { path: 'movie' } })
@@ -182,8 +193,11 @@ const sendBookingConfirmationEmail = inngest.createFunction(
 
 // Show Notification
 const sendNewShowNotification = inngest.createFunction(
-  { id: 'send-new-show-notifications' },
-  { event: "app/show.added" },
+  {
+    id: 'send-new-show-notifications',
+    triggers: { event: "app/show.added" },
+  },
+  
   async ({ event }) => {
     const { movieTitle } = event.data;
     const users = await User.find();

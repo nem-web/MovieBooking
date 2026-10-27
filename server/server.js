@@ -25,7 +25,17 @@ app.use('/api/payment', paymentRoutes);
 
 // Middleware
 app.use(express.json())
-app.use(cors());
+
+app.use(cors({
+    origin: [
+        "http://localhost:5173",
+        "https://quickshow-server-nine.vercel.app",
+    ],
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+}));
+
 app.use(clerkMiddleware())
 
 // API Routes
