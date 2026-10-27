@@ -1,6 +1,6 @@
 import { ChatGroq } from '@langchain/groq';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
-import { StringOutputParser } from '@langchain/core/output_parsers';
+import { z } from "zod";
 import Show from '../models/Show.js';
 import Movie from '../models/Movie.js';
 
@@ -10,9 +10,21 @@ const model = new ChatGroq({
     apiKey: process.env.GROQ_API_KEY,
     temperature: 0.3,
     maxRetries: 1,
+    timeout: 60000,
+    maxTokens: 1500,
 });
 
 const conversations = new Map();
+
+const recommendationSchema = z.object({
+    reply: z.string().describe("Short conversational response"),
+    recommendations: z.array(
+        z.object({
+            id: z.string().describe("Exact movie ID from available movies"),
+            reason: z.string().describe("Why this movie is recommended"),
+        })
+    ).max(3),
+});
 
 const prompt = ChatPromptTemplate.fromMessages([
     [
@@ -54,9 +66,16 @@ Do not include Markdown fences.`,
     ],
 ]);
 
-const chain = prompt.pipe(model).pipe(
-    new StringOutputParser()
+const structureModel = model.withStructuredOutput(
+    recommendationSchema,
+    {
+        name: "movie_recommendations",
+        method: "jsonSchema",
+        strict: true,
+    }
 );
+
+const chain = prompt.pipe(structureModel);
 
 export const recommendMovies = async (message, threadId) => {
     // Get only upcoming shows
@@ -76,7 +95,7 @@ export const recommendMovies = async (message, threadId) => {
 
         grouped.get(id).push({
             dateTime: show.showDateTime,
-            price: show.price,
+            price: show.showPrice,
         });
     }
 
@@ -100,7 +119,7 @@ export const recommendMovies = async (message, threadId) => {
         return {
             id: String(movie._id),
             title: movie.title,
-            overview: movie.overview,
+            overview: movie.overview?.slice(0,250),
             genres: movie.genres?.map((g) => g.name || g),
             language: movie.original_language,
             rating: movie.vote_average,
@@ -113,20 +132,20 @@ export const recommendMovies = async (message, threadId) => {
     });
 
     // Limit catalouge size for initial free tier testing
-    const catalog = availableMovies.slice(0,40);
+    const catalog = availableMovies.slice(0,10);
     
     const history = conversations.get(threadId) || [];
 
-    const rawResponse = await chain.invoke({
+    const startTime = Date.now();
+
+    const parsed = await chain.invoke({
         today: new Date().toISOString(),
         movies: JSON.stringify(catalog),
         history: JSON.stringify(history),
         message,
     });
 
-    const jsonText = rawResponse.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
-
-    const parsed = JSON.parse(jsonText);
+    // console.log("Structured AI Response : ", parsed);
 
     // Validate all recommended IDs against the catalog
     const movieMap = new Map(
