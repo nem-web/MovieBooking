@@ -65,6 +65,9 @@ const MovieAssistant = () => {
 
             const data = await response.json();
 
+            console.log("AI API Response:", data);
+            console.log("Recommended Movies:", data.movies);
+
             if (data.success === false){
                 throw new Error(data.message || "Recommendation failed");
             }
@@ -74,7 +77,7 @@ const MovieAssistant = () => {
                 {
                     role: "assistant",
                     content: data.reply || "Here are my recommendations.",
-                    movies: Array.isArray(data.movie) ? data.movie : [],
+                    movies: Array.isArray(data.movies) ? data.movies : [],
                 },
             ]);
 
@@ -108,7 +111,7 @@ const MovieAssistant = () => {
 
             {/* Chatbot Window */}
             {isOpen && (
-                <div className="fixed bottom-4 right-4 z-50 flex-h[min(580px, 85dvh)] w-[calc(100vh-2rem)] max-w-[390px] flex-col overflow-hidden rounded-2xl border border-gray-700 bg-[#18181f] text-white shadow-2xl sm:bottom-6 sm:right-6">
+                <div className="fixed bottom-4 right-4 z-50 flex h-[min(580px,85dvh)] w-[calc(100vw-2rem)] max-w-[390px] flex-col overflow-hidden rounded-2xl border border-gray-700 bg-[#18181f] text-white shadow-2xl sm:bottom-6 sm:right-6">
                     {/* Header */}
                     <div className="flex items-center justify-between border-b border-gray-700 bg-[#22222c] px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -167,23 +170,23 @@ const MovieAssistant = () => {
                                                     )}
                                                     <div className="min-w-0 flex-1">
                                                         <h4 className="font-medium">{movie.title}</h4>
+
+                                                        {movie.reason && (
+                                                            <p className="mt-1 text-xs text-gray-400">
+                                                                {movie.reason}
+                                                            </p>
+                                                        )}
+
+                                                        <button 
+                                                            onClick={() => {
+                                                                setIsOpen(false);
+                                                                navigate(`/movies/${movie.id}`);
+                                                            }}
+                                                            className="mt-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
+                                                        >
+                                                            View movie
+                                                        </button>
                                                     </div>
-
-                                                    {movie.reason && (
-                                                        <p className="mt-1 text-xs text-gray-400">
-                                                            {movie.reason}
-                                                        </p>
-                                                    )}
-
-                                                    <button 
-                                                        onClick={() => {
-                                                            setIsOpen(false);
-                                                            navigate(`/movies/${movie.id}`);
-                                                        }}
-                                                        className="mt-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
-                                                    >
-                                                        View movie
-                                                    </button>
                                                 </div>
                                             ))}
                                         </div>

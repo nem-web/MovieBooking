@@ -12,6 +12,7 @@ import userRouter from './routes/userRoutes.js';
 import { requireAuth } from '@clerk/express';
 import webhookRoute from './routes/webhook.js';
 import paymentRoutes from './routes/payment.js';
+import aiRouter from './routes/aiRoutes.js';
 
 const app = express();
 const port = 4000;
@@ -45,6 +46,8 @@ app.use('/api/show', showRouter)
 app.use('/api/booking', bookingRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/user', userRouter);
+
+app.use('/api/ai', aiRouter);
 
 
 app.listen(port, ()=> console.log(`Server is running on port ${port}`));
