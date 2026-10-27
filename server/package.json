@@ -19,7 +19,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "inngest": "^3.39.1",
+    "inngest": "^4.26.0",
     "mongoose": "^8.15.2",
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.3",
